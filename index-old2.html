@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Palmerston Bowls — Rink Booking Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --col-free: #f5f5f5;
+    --col-free-border: #bdbdbd;
+    --col-rollup: #fff9c4;
+    --col-rollup-border: #f9a825;
+    --col-reserved: #fff9c4;
+    --col-reserved-border: #f57f17;
+    --col-competition: #e3f2fd;
+    --col-competition-border: #1565c0;
+    --col-match: #fce4ec;
+    --col-match-border: #880e4f;
+    --col-league: #e0f2f1;
+    --col-league-border: #004d40;
+    --col-event: #fce4ec;
+    --col-event-border: #880e4f;
+    --col-ladder: #fff3e0;
+    --col-ladder-border: #e65100;
+    --col-blocked: #424242;
+    --col-blocked-text: #ffffff;
+    --header-bg: #1a3a5c;
+    --header-text: #ffffff;
+    --date-strip-bg: #f0f4f8;
+    --date-active-bg: #1a3a5c;
+    --date-active-text: #ffffff;
+    --session-header-bg: #e8edf2;
+    --body-bg: #f7f9fb;
+    --font: 'Georgia', serif;
+    --font-ui: 'Trebuchet MS', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-ui);
+    background: var(--body-bg);
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-size: 16px;
+  }
+
+  .header {
+    background: var(--header-bg);
+    color: var(--header-text);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+  .header-logo {
+    font-family: var(--font);
+    font-size: 17px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+  }
+  .header-logo span {
+    display: block;
+    font-size: 11px;
+    font-weight: normal;
+    opacity: 0.8;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .header-member { font-size: 14px; text-align: center; opacity: 0.9; }
+  .header-icons { display: flex; gap: 18px; font-size: 20px; cursor: pointer; }
+  .header-icons span { opacity: 0.85; }
+
+  .date-strip {
+    background: var(--date-strip-bg);
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 2px solid #d0d8e0;
+    padding: 0 4px;
+  }
+  .date-strip::-webkit-scrollbar { display: none; }
+  .date-item {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 6px 6px 0 0;
+    min-width: 62px;
+    transition: background 0.15s;
+  }
+  .date-item .day-name { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #607080; font-weight: 600; }
+  .date-item .day-num { font-size: 22px; font-weight: bold; color: #2c3e50; line-height: 1.1; margin: 1px 0; }
+  .date-item .month { font-size: 11px; color: #607080; text-transform: uppercase; letter-spacing: 0.5px; }
+  .date-item.active { background: var(--date-active-bg); border-radius: 6px 6px 0 0; }
+  .date-item.active .day-name,
+  .date-item.active .day-num,
+  .date-item.active .month { color: #ffffff; }
+  .date-item.adjacent { opacity: 0.65; }
+
+  .sessions-container { display: flex; flex: 1; }
+  .session-col { flex: 1; min-width: 0; }
+  .session-col.right-col { border-left: 2px solid #d0d8e0; }
+
+  .session-header {
+    background: var(--session-header-bg);
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #d0d8e0;
+    position: sticky;
+    top: 58px;
+    z-index: 50;
+  }
+  .session-time { font-size: 17px; font-weight: bold; color: #1a3a5c; font-family: var(--font); }
+  .session-time.next { color: #607080; font-size: 14px; }
+  .session-updated { font-size: 11px; color: #8090a0; }
+  .session-updated.just-updated { color: #e65100; font-weight: 600; }
+
+  .session-nav {
+    display: flex;
+    background: var(--session-header-bg);
+    border-bottom: 2px solid #c0ccd8;
+    padding: 6px 10px;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+  }
+  .session-nav-btn {
+    background: #1a3a5c;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--font-ui);
+  }
+  .session-nav-label { font-size: 13px; color: #607080; }
+
+  .rinks { padding: 4px 6px 8px; display: flex; flex-direction: column; gap: 5px; }
+  .rink-row { display: flex; align-items: stretch; }
+  .rink-number { width: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #8090a0; flex-shrink: 0; }
+  .rink-number.hidden { visibility: hidden; }
+
+  .card {
+    flex: 1;
+    border-radius: 7px;
+    border: 2px solid var(--col-free-border);
+    background: var(--col-free);
+    padding: 7px 8px;
+    min-height: 58px;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+  }
+  .card:active { transform: scale(0.97); }
+  .card.interactive:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.18); transform: translateY(-1px); }
+  .card.desaturated { filter: saturate(0.3) brightness(1.05); cursor: default; pointer-events: none; }
+  .card.past { filter: grayscale(1) brightness(0.92); cursor: default; pointer-events: none; opacity: 0.7; }
+
+  .card-line1 { font-size: 13px; font-weight: 700; color: #1a2530; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-line2 { font-size: 12px; color: #3a4a5a; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .card-badge { font-size: 10px; background: rgba(0,0,0,0.08); border-radius: 10px; padding: 1px 6px; color: #3a4a5a; font-weight: 600; }
+  .card-players { font-size: 11px; color: #607080; font-weight: 600; }
+  .card-free-text { font-size: 13px; color: #90a0b0; font-style: italic; text-align: center; margin: auto; }
+  .card-prov-badge { position: absolute; top: 4px; right: 4px; background: #ff9800; color: white; font-size: 8px; font-weight: 700; border-radius: 3px; padding: 1px 4px; letter-spacing: 0.4px; text-transform: uppercase; }
+
+  .type-rollup    { background: var(--col-rollup);      border-color: var(--col-rollup-border); }
+  .type-reserved  { background: var(--col-reserved);    border-color: var(--col-reserved-border); }
+  .type-comp      { background: var(--col-competition); border-color: var(--col-competition-border); }
+  .type-match     { background: var(--col-match);       border-color: var(--col-match-border); }
+  .type-league    { background: var(--col-league);      border-color: var(--col-league-border); }
+  .type-event     { background: var(--col-event);       border-color: var(--col-event-border); }
+  .type-ladder    { background: var(--col-ladder);      border-color: var(--col-ladder-border); }
+  .type-blocked   { background: var(--col-blocked);     border-color: var(--col-blocked); }
+  .type-blocked .card-line1,
+  .type-blocked .card-line2,
+  .type-blocked .card-badge { color: var(--col-blocked-text); }
+
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: flex-end; }
+  .overlay.open { display: flex; }
+  .detail-panel {
+    background: #fff;
+    border-radius: 18px 18px 0 0;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 20px 32px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+    max-height: 70vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  .panel-handle { width: 40px; height: 4px; background: #d0d8e0; border-radius: 2px; margin: 0 auto 16px; }
+  .panel-title { font-size: 20px; font-weight: bold; color: #1a3a5c; font-family: var(--font); margin-bottom: 4px; }
+  .panel-subtitle { font-size: 14px; color: #607080; margin-bottom: 14px; }
+  .panel-field { margin-bottom: 10px; }
+  .panel-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #8090a0; font-weight: 700; margin-bottom: 2px; }
+  .panel-value { font-size: 15px; color: #1a2530; font-weight: 500; }
+  .panel-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+
+  .btn { padding: 12px 20px; border-radius: 8px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; font-family: var(--font-ui); min-height: 48px; flex: 1; }
+  .btn-primary { background: #1a3a5c; color: white; }
+  .btn-danger  { background: #c62828; color: white; }
+  .btn-secondary { background: #e8edf2; color: #1a2530; }
+  .btn-close-panel { position: absolute; top: 16px; right: 16px; background: #e8edf2; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  .booking-form { display: flex; flex-direction: column; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #8090a0; font-weight: 700; }
+  .form-select, .form-input { font-size: 16px; padding: 10px 12px; border: 2px solid #d0d8e0; border-radius: 8px; background: #f7f9fb; color: #1a2530; font-family: var(--font-ui); width: 100%; min-height: 48px; }
+  .copy-link { font-size: 13px; color: #1a3a5c; text-decoration: underline; cursor: pointer; margin-top: -6px; }
+
+  .colour-key { background: #fff; border-top: 2px solid #d0d8e0; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .key-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #3a4a5a; }
+  .key-swatch { width: 14px; height: 14px; border-radius: 3px; border: 2px solid; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">Palmerston<span>Indoor Bowls Club</span></div>
+  <div class="header-member">J. Robertson</div>
+  <div class="header-icons"><span title="Account">👤</span><span title="Settings">⚙️</span><span title="Log out">🚪</span></div>
+</div>
+
+<div class="date-strip" id="dateStrip"></div>
+
+<div class="session-nav">
+  <button class="session-nav-btn" onclick="prevSession()">◀</button>
+  <span class="session-nav-label" id="sessionNavLabel">Session 2 of 5</span>
+  <button class="session-nav-btn" onclick="nextSession()">▶</button>
+</div>
+
+<div class="sessions-container">
+  <div class="session-col left-col" id="leftCol"></div>
+  <div class="session-col right-col" id="rightCol"></div>
+</div>
+
+<div class="colour-key">
+  <div class="key-item"><div class="key-swatch" style="background:#fff9c4;border-color:#f9a825"></div>Roll-up / Reserved</div>
+  <div class="key-item"><div class="key-swatch" style="background:#e3f2fd;border-color:#1565c0"></div>Competition</div>
+  <div class="key-item"><div class="key-swatch" style="background:#fce4ec;border-color:#880e4f"></div>Match / Event</div>
+  <div class="key-item"><div class="key-swatch" style="background:#e0f2f1;border-color:#004d40"></div>League</div>
+  <div class="key-item"><div class="key-swatch" style="background:#fff3e0;border-color:#e65100"></div>Ladder</div>
+  <div class="key-item"><div class="key-swatch" style="background:#424242;border-color:#424242"></div>Blocked</div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closePanel(event)">
+  <div class="detail-panel" id="detailPanel">
+    <button class="btn-close-panel" onclick="closeOverlay()">✕</button>
+    <div class="panel-handle"></div>
+    <div id="panelContent"></div>
+  </div>
+</div>
+
+<script>
+const sessions = [
+  { id: '0930', label: '9.30am' },
+  { id: '1130', label: '11.30am' },
+  { id: '1400', label: '2.00pm' },
+  { id: '1600', label: '4.00pm' },
+  { id: '1815', label: '6.15pm' },
+];
+
+const today = new Date();
+let currentDateIdx = 1;
+let currentSessionIdx = 1;
+
+const dates = Array.from({length: 14}, (_, i) => {
+  const d = new Date(today);
+  d.setDate(today.getDate() + i - 1);
+  return d;
+});
+
+const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const slotData = {
+  '0_0930': [
+    {type:'league', l1:'Australian Pairs League', l2:'Jackmen vs Down Line'},
+    {type:'league', l1:'Australian Pairs League', l2:'Shorts vs Incredibowls'},
+    {type:'league', l1:'Australian Pairs League', l2:'Green Masters vs Rollers'},
+    {type:'free'},{type:'free'},{type:'free'},{type:'free'},{type:'free'},
+  ],
+  '1_1130': [
+    {type:'rollup', l1:'Roll-up', l2:'T. Henderson', players:'3/6', badge:'Open'},
+    {type:'free'},
+    {type:'comp', l1:'National Mixed Pairs', l2:'J. Robertson', provisional:true, booker:'J. Robertson', compname:'Semi-final vs A. Smith', partners:'M. Robertson', opponent:'A. Smith / B. Jones'},
+    {type:'free'},
+    {type:'reserved', l1:'Reserved', l2:'Ladies Section'},
+    {type:'free'},
+    {type:'ladder', l1:'Singles Ladder', l2:'', players:'2/4'},
+    {type:'free'},
+  ],
+  '1_1400': [
+    {type:'free'},
+    {type:'match', l1:'Mason Trophy', l2:'vs Banister Park'},
+    {type:'match', l1:'Mason Trophy', l2:'vs Banister Park'},
+    {type:'match', l1:'Mason Trophy', l2:'vs Banister Park'},
+    {type:'match', l1:'Mason Trophy', l2:'vs Banister Park'},
+    {type:'free'},
+    {type:'blocked', l1:'Blocked', l2:'Maintenance'},
+    {type:'free'},
+  ],
+  '2_1400': [
+    {type:'rollup', l1:'Roll-up', l2:'P. Watson', players:'4/4', badge:'Full'},
+    {type:'free'},{type:'free'},
+    {type:'event', l1:'Mixed Drive', l2:''},
+    {type:'event', l1:'Mixed Drive', l2:''},
+    {type:'event', l1:'Mixed Drive', l2:''},
+    {type:'free'},
+    {type:'ladder', l1:'Singles Ladder', l2:'', players:'0/4'},
+  ],
+};
+
+function getSlots(dateIdx, sessionId) {
+  const key = dateIdx + '_' + sessionId;
+  if (slotData[key]) return slotData[key];
+  return Array.from({length: 8}, (_, i) => {
+    if (i === 2 && dateIdx % 3 === 0) return {type:'rollup', l1:'Roll-up', l2:'R. Burns', players:'2/5', badge:'Open'};
+    if (i === 5 && dateIdx % 4 === 0) return {type:'comp', l1:'Club Mens Singles', l2:'R. Burns', compname:'Quarter-final', booker:'R. Burns'};
+    return {type:'free'};
+  });
+}
+
+function buildDateStrip() {
+  const strip = document.getElementById('dateStrip');
+  strip.innerHTML = '';
+  dates.forEach((d, i) => {
+    const item = document.createElement('div');
+    item.className = 'date-item' + (i === currentDateIdx ? ' active' : '') + (Math.abs(i - currentDateIdx) > 1 ? ' adjacent' : '');
+    item.innerHTML = '<div class="day-name">' + dayNames[d.getDay()] + '</div><div class="day-num">' + d.getDate() + '</div><div class="month">' + monthNames[d.getMonth()] + '</div>';
+    item.onclick = () => { currentDateIdx = i; buildAll(); };
+    strip.appendChild(item);
+  });
+  const active = strip.querySelector('.active');
+  if (active) active.scrollIntoView({block:'nearest', inline:'center'});
+}
+
+function buildSessionNav() {
+  document.getElementById('sessionNavLabel').textContent = 'Session ' + (currentSessionIdx + 1) + ' of ' + sessions.length;
+}
+
+function prevSession() { if (currentSessionIdx > 0) { currentSessionIdx--; buildAll(); } }
+function nextSession() { if (currentSessionIdx < sessions.length - 1) { currentSessionIdx++; buildAll(); } }
+
+function buildCol(colEl, sessionIdx, isRight) {
+  const session = sessions[sessionIdx];
+  if (!session) { colEl.innerHTML = ''; return; }
+  const slots = getSlots(currentDateIdx, session.id);
+  const isPast = currentDateIdx === 0;
+  const isJustUpdated = !isRight && currentDateIdx === 1 && currentSessionIdx === 1;
+  const updatedTime = isRight ? '4.12pm' : '4.47pm';
+
+  colEl.innerHTML = '<div class="session-header"><div class="session-time' + (isRight ? ' next' : '') + '">' + (isRight ? 'Next session' : session.label) + '</div><div class="session-updated' + (isJustUpdated ? ' just-updated' : '') + '">Upd ' + updatedTime + '</div></div><div class="rinks" id="' + (isRight ? 'right' : 'left') + 'Rinks"></div>';
+
+  const rinksEl = colEl.querySelector('.rinks');
+  slots.forEach((slot, i) => {
+    const row = document.createElement('div');
+    row.className = 'rink-row';
+    const num = document.createElement('div');
+    num.className = 'rink-number' + (isRight ? ' hidden' : '');
+    num.textContent = i + 1;
+    const card = buildCard(slot, i + 1, isRight, isPast, session);
+    row.appendChild(num);
+    row.appendChild(card);
+    rinksEl.appendChild(row);
+  });
+}
+
+function buildCard(slot, rinkNum, isRight, isPast, session) {
+  const card = document.createElement('div');
+  const typeMap = {free:'',rollup:'type-rollup',reserved:'type-reserved',comp:'type-comp',match:'type-match',league:'type-league',event:'type-event',ladder:'type-ladder',blocked:'type-blocked'};
+  card.className = 'card ' + (typeMap[slot.type] || '');
+  if (isRight) card.className += ' desaturated';
+  else if (isPast) card.className += ' past';
+  else card.className += ' interactive';
+
+  if (slot.type === 'free') {
+    card.innerHTML = '<div class="card-free-text">Free</div>';
+    if (!isRight && !isPast) card.onclick = () => showBookingForm(rinkNum, session);
+  } else {
+    let html = '';
+    if (slot.provisional) html += '<div class="card-prov-badge">Provisional</div>';
+    html += '<div><div class="card-line1">' + (slot.l1 || '') + '</div>';
+    if (slot.l2) html += '<div class="card-line2">' + slot.l2 + '</div>';
+    html += '</div><div class="card-footer">';
+    html += slot.badge ? '<div class="card-badge">' + slot.badge + '</div>' : '<div></div>';
+    html += slot.players ? '<div class="card-players">&#128101; ' + slot.players + '</div>' : '<div></div>';
+    html += '</div>';
+    card.innerHTML = html;
+    if (!isRight && !isPast) card.onclick = () => showSlotDetail(slot, rinkNum, session);
+  }
+  return card;
+}
+
+function showSlotDetail(slot, rinkNum, session) {
+  const d = dates[currentDateIdx];
+  const dateStr = dayNames[d.getDay()] + ' ' + d.getDate() + ' ' + monthNames[d.getMonth()] + ' — ' + session.label + ' — Rink ' + rinkNum;
+  let html = '<div class="panel-title">' + (slot.type === 'comp' ? 'Competition' : slot.l1) + '</div><div class="panel-subtitle">' + dateStr + '</div>';
+  if (slot.l2 && slot.type !== 'comp') html += '<div class="panel-field"><div class="panel-label">Details</div><div class="panel-value">' + slot.l2 + '</div></div>';
+  if (slot.type === 'comp') html += '<div class="panel-field"><div class="panel-label">Competition type</div><div class="panel-value">' + slot.l1 + '</div></div>';
+  if (slot.compname) html += '<div class="panel-field"><div class="panel-label">Competition</div><div class="panel-value">' + slot.compname + '</div></div>';
+  if (slot.booker) html += '<div class="panel-field"><div class="panel-label">Booked by</div><div class="panel-value">' + slot.booker + '</div></div>';
+  if (slot.partners) html += '<div class="panel-field"><div class="panel-label">Partners</div><div class="panel-value">' + slot.partners + '</div></div>';
+  if (slot.opponent) html += '<div class="panel-field"><div class="panel-label">Opponent</div><div class="panel-value">' + slot.opponent + '</div></div>';
+  if (slot.players) html += '<div class="panel-field"><div class="panel-label">Players</div><div class="panel-value">' + slot.players + '</div></div>';
+  if (slot.provisional) html += '<div class="panel-field"><div class="panel-label">Status</div><div class="panel-value" style="color:#e65100;font-weight:700;">Provisional</div></div>';
+  html += '<div class="panel-actions">';
+  if (slot.type === 'rollup' && slot.badge === 'Open') html += '<button class="btn btn-primary" onclick="closeOverlay()">Join</button>';
+  if (slot.provisional && slot.booker === 'J. Robertson') {
+    html += '<button class="btn btn-primary" onclick="closeOverlay()">Confirm</button>';
+    html += '<button class="btn btn-danger" onclick="closeOverlay()">Cancel</button>';
+  } else if (slot.booker === 'J. Robertson') {
+    html += '<button class="btn btn-danger" onclick="closeOverlay()">Cancel</button>';
+  }
+  if (slot.type === 'ladder') html += '<button class="btn btn-primary" onclick="closeOverlay()">Join</button>';
+  html += '<button class="btn btn-secondary" onclick="closeOverlay()">Close</button></div>';
+  document.getElementById('panelContent').innerHTML = html;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function showBookingForm(rinkNum, session) {
+  const d = dates[currentDateIdx];
+  const dateStr = dayNames[d.getDay()] + ' ' + d.getDate() + ' ' + monthNames[d.getMonth()] + ' — ' + session.label + ' — Rink ' + rinkNum;
+  const html = '<div class="panel-title">New Booking</div><div class="panel-subtitle">' + dateStr + '</div><div class="booking-form"><div class="form-group"><div class="form-label">Booking type</div><select class="form-select"><option>Roll-up</option><option>Reserved</option><option>Competition</option><option>Singles Ladder</option></select></div><div class="copy-link" onclick="closeOverlay()">&#128203; Copy from existing booking&hellip;</div><div class="form-group"><div class="form-label">Playing partners</div><input class="form-input" type="text" placeholder="Search by name or card number&hellip;"></div><div class="form-group"><div class="form-label">Recent partners</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button style="padding:8px 12px;border-radius:20px;border:2px solid #1a3a5c;background:#e8edf2;font-size:13px;font-weight:600;cursor:pointer;color:#1a3a5c;">M. Robertson</button><button style="padding:8px 12px;border-radius:20px;border:2px solid #1a3a5c;background:#e8edf2;font-size:13px;font-weight:600;cursor:pointer;color:#1a3a5c;">T. Henderson</button><button style="padding:8px 12px;border-radius:20px;border:2px solid #1a3a5c;background:#e8edf2;font-size:13px;font-weight:600;cursor:pointer;color:#1a3a5c;">P. Watson</button><button style="padding:8px 12px;border-radius:20px;border:2px solid #1a3a5c;background:#e8edf2;font-size:13px;font-weight:600;cursor:pointer;color:#1a3a5c;">R. Burns</button></div></div></div><div class="panel-actions"><button class="btn btn-primary" onclick="closeOverlay()">Confirm booking</button><button class="btn btn-secondary" onclick="closeOverlay()">Cancel</button></div>';
+  document.getElementById('panelContent').innerHTML = html;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closePanel(e) { if (e.target === document.getElementById('overlay')) closeOverlay(); }
+function closeOverlay() { document.getElementById('overlay').classList.remove('open'); }
+
+function buildAll() {
+  buildDateStrip();
+  buildSessionNav();
+  buildCol(document.getElementById('leftCol'), currentSessionIdx, false);
+  const rightSession = sessions[currentSessionIdx + 1];
+  if (rightSession) {
+    buildCol(document.getElementById('rightCol'), currentSessionIdx + 1, true);
+  } else {
+    document.getElementById('rightCol').innerHTML = '<div class="session-header"><div class="session-time next" style="color:#c0ccd8;">Last session</div><div></div></div><div style="padding:20px;text-align:center;color:#c0ccd8;font-size:13px;">No further session today</div>';
+  }
+}
+
+buildAll();
+</script>
+</body>
+</html>
